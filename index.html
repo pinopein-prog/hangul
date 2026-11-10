@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f5d8a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="한글練習帳">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>ハングル練習帳</title>
+<style>
+:root{
+  --bg:#f6f4ef; --card:#fff; --ink:#1f2328; --muted:#6b7078; --line:#e4e0d6;
+  --accent:#2f5d8a; --accent-soft:#e6eef6; --ok:#2e7d4f; --ok-soft:#e5f3ea; --ng:#b3412f; --ng-soft:#f8e7e3;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#16181c;--card:#20242a;--ink:#e9eaec;--muted:#9aa0a8;--line:#323840;--accent:#7fb0e0;--accent-soft:#25313d;--ok:#6cc58f;--ok-soft:#1f3328;--ng:#ec8a78;--ng-soft:#3a2522;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans JP","Noto Sans KR","Noto Sans CJK JP",system-ui,sans-serif;line-height:1.6;-webkit-text-size-adjust:100%}
+.ko{font-family:"Noto Sans KR","Noto Sans JP",sans-serif}
+.wrap{max-width:640px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(60px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left))}
+html,body{overscroll-behavior-y:none}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:18px}
+h1{font-size:20px;margin:0;letter-spacing:.02em}
+h1 span{color:var(--accent)}
+h2{font-size:15px;color:var(--muted);font-weight:500;margin:22px 0 10px}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:11px 18px;font-weight:700}
+.btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:default}
+.link{background:none;border:0;color:var(--accent);padding:6px 4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.lesson{display:flex;align-items:center;gap:12px;padding:14px 16px;margin-bottom:10px;width:100%;text-align:left}
+.lesson .num{flex:0 0 36px;height:36px;border-radius:50%;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700;font-size:14px}
+.lesson .body{flex:1;min-width:0}
+.lesson .t{font-weight:700}
+.lesson .s{font-size:13px;color:var(--muted)}
+.lesson .score{font-size:12px;color:var(--muted);white-space:nowrap;text-align:right}
+.lesson .score b{display:block;font-size:15px;color:var(--ink)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.progress{flex:1;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .25s}
+.qcard{text-align:center;padding:26px 16px 20px}
+.qlabel{font-size:13px;color:var(--muted);margin-bottom:6px}
+.qmain{font-size:56px;font-weight:700;line-height:1.25;word-break:keep-all}
+.qmain.mid{font-size:30px}
+.qmain.small{font-size:22px}
+.qsub{color:var(--muted);font-size:15px;margin-top:4px}
+.speak{border:1px solid var(--line);background:var(--card);border-radius:99px;padding:4px 12px;font-size:14px;margin-top:10px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.choices.one{grid-template-columns:1fr}
+.choice{background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:14px 10px;font-size:18px;min-height:60px}
+.choice:hover:not(:disabled){border-color:var(--accent)}
+.choice.ok{border-color:var(--ok);background:var(--ok-soft)}
+.choice.ng{border-color:var(--ng);background:var(--ng-soft)}
+.choice:disabled{cursor:default}
+.feedback{margin-top:14px;border-radius:12px;padding:12px 14px;font-size:14px;text-align:left}
+.feedback.ok{background:var(--ok-soft)}
+.feedback.ng{background:var(--ng-soft)}
+.feedback b{font-size:15px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;min-height:52px;padding:10px;border-radius:12px}
+.answerline{border:1.5px dashed var(--line);margin-top:16px}
+.tile{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:8px 14px;font-size:20px}
+.tile.used{visibility:hidden}
+.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+table.chart{width:100%;border-collapse:collapse}
+table.chart td{border-bottom:1px solid var(--line);padding:9px 6px;vertical-align:middle}
+table.chart td.big{font-size:28px;font-weight:700;width:64px;text-align:center}
+table.chart td.r{font-size:14px}
+table.chart td.n{font-size:12px;color:var(--muted)}
+table.chart tr{cursor:pointer}
+.intro{font-size:14px;background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+.result{text-align:center;padding:30px 16px}
+.result .big{font-size:52px;font-weight:700;color:var(--accent)}
+.mistakes{text-align:left;margin-top:16px;font-size:14px}
+.mistakes li{margin-bottom:4px}
+textarea{width:100%;min-height:160px;font:13px/1.5 ui-monospace,monospace;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--card);color:var(--ink)}
+.note{font-size:13px;color:var(--muted)}
+.msg{font-size:13px;margin-top:8px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============ データ ============ */
+const LESSONS = [
+{ id:'v1', title:'基本母音', sub:'ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ', type:'char',
+  intro:'ハングルは「子音＋母音」の組み合わせで1文字になります。母音だけを書くときは、音のない子音 <span class="ko">ㅇ</span> を付けて <span class="ko">아</span> のように書きます。<br>ポイント：<span class="ko">ㅓ</span>は口を大きく開けた「オ」、<span class="ko">ㅗ</span>は唇を丸めた「オ」。<span class="ko">ㅜ</span>は唇を丸めた「ウ」、<span class="ko">ㅡ</span>は口を横に引いた「ウ」。',
+  items:[
+  ['ㅏ','아','a','ア','日本語の「ア」とほぼ同じ'],
+  ['ㅑ','야','ya','ヤ','ㅏに棒が1本増えるとyが付く'],
+  ['ㅓ','어','eo','オ','口を大きく開けた「オ」'],
+  ['ㅕ','여','yeo','ヨ','口を大きく開けた「ヨ」'],
+  ['ㅗ','오','o','オ','唇を丸く突き出す「オ」'],
+  ['ㅛ','요','yo','ヨ','唇を丸く突き出す「ヨ」'],
+  ['ㅜ','우','u','ウ','唇を丸く突き出す「ウ」'],
+  ['ㅠ','유','yu','ユ','唇を丸めた「ユ」'],
+  ['ㅡ','으','eu','ウ','口を横に引いた「ウ」'],
+  ['ㅣ','이','i','イ','日本語の「イ」とほぼ同じ']
+]},
+{ id:'c1', title:'基本子音', sub:'ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ ㅈ ㅎ', type:'char',
+  intro:'子音に <span class="ko">ㅏ</span> を付けた形で覚えます。<span class="ko">ㄱ ㄷ ㅂ ㅈ</span> は語頭では「k t p ch」寄りの濁らない音、語中では「g d b j」と濁ります（例：<span class="ko">고기</span> コギ）。',
+  items:[
+  ['가','ㄱ+ㅏ','ga','カ／ガ','語頭はカ、語中はガ'],
+  ['나','ㄴ+ㅏ','na','ナ','n の音'],
+  ['다','ㄷ+ㅏ','da','タ／ダ','語頭はタ、語中はダ'],
+  ['라','ㄹ+ㅏ','ra','ラ','r／l の音'],
+  ['마','ㅁ+ㅏ','ma','マ','m の音'],
+  ['바','ㅂ+ㅏ','ba','パ／バ','語頭はパ、語中はバ'],
+  ['사','ㅅ+ㅏ','sa','サ','s の音（시はシ）'],
+  ['아','ㅇ+ㅏ','a','ア','初声のㅇは無音'],
+  ['자','ㅈ+ㅏ','ja','チャ／ジャ','語頭はチャ、語中はジャ'],
+  ['하','ㅎ+ㅏ','ha','ハ','h の音']
+]},
+{ id:'c2', title:'激音・濃音', sub:'ㅊ ㅋ ㅌ ㅍ ／ ㄲ ㄸ ㅃ ㅆ ㅉ', type:'char',
+  intro:'<b>激音</b>（<span class="ko">ㅊ ㅋ ㅌ ㅍ</span>）は息を強く吐き出す音。<b>濃音</b>（<span class="ko">ㄲ ㄸ ㅃ ㅆ ㅉ</span>）は息を出さず、喉を詰めて「ッ」を前に置くような音。どちらも語中でも濁りません。',
+  items:[
+  ['차','ㅊ+ㅏ','cha','チャ（息）','激音：息を強く出す'],
+  ['카','ㅋ+ㅏ','ka','カ（息）','激音：息を強く出す'],
+  ['타','ㅌ+ㅏ','ta','タ（息）','激音：息を強く出す'],
+  ['파','ㅍ+ㅏ','pa','パ（息）','激音：息を強く出す'],
+  ['까','ㄲ+ㅏ','kka','ッカ','濃音：喉を詰める'],
+  ['따','ㄸ+ㅏ','tta','ッタ','濃音：喉を詰める'],
+  ['빠','ㅃ+ㅏ','ppa','ッパ','濃音：喉を詰める'],
+  ['싸','ㅆ+ㅏ','ssa','ッサ','濃音：喉を詰める'],
+  ['짜','ㅉ+ㅏ','jja','ッチャ','濃音：喉を詰める']
+]},
+{ id:'v2', title:'合成母音', sub:'ㅐ ㅔ ㅒ ㅖ ㅘ ㅙ ㅚ ㅝ ㅞ ㅟ ㅢ', type:'char',
+  intro:'基本母音を組み合わせた母音です。現代の発音では <span class="ko">ㅐ</span> と <span class="ko">ㅔ</span> はどちらも「エ」、<span class="ko">ㅙ ㅚ ㅞ</span> はどれも「ウェ」でほぼ区別しません。',
+  items:[
+  ['ㅐ','애','ae','エ','ㅏ+ㅣ。ㅔとほぼ同じ音'],
+  ['ㅔ','에','e','エ','ㅓ+ㅣ'],
+  ['ㅒ','얘','yae','イェ','ㅑ+ㅣ'],
+  ['ㅖ','예','ye','イェ','ㅕ+ㅣ（「はい」の예）'],
+  ['ㅘ','와','wa','ワ','ㅗ+ㅏ'],
+  ['ㅙ','왜','wae','ウェ','ㅗ+ㅐ（「なぜ」の왜）'],
+  ['ㅚ','외','oe','ウェ','ㅗ+ㅣ'],
+  ['ㅝ','워','wo','ウォ','ㅜ+ㅓ'],
+  ['ㅞ','웨','we','ウェ','ㅜ+ㅔ'],
+  ['ㅟ','위','wi','ウィ','ㅜ+ㅣ'],
+  ['ㅢ','의','ui','ウィ','ㅡ+ㅣ。「〜の」の意味ではエ']
+]},
+{ id:'b1', title:'パッチム（終声）', sub:'下に付く子音・7つの音', type:'char',
+  intro:'文字の下に付く子音を<b>パッチム</b>と言います。発音は7種類だけ：<b>k（ㄱ系）・n・t（ㄷ ㅅ ㅈ ㅊ ㅌ ㅎ）・l・m・p（ㅂ ㅍ）・ng</b>。k / t / p は口の形を作って息を止めるだけで、母音は付けません。',
+  items:[
+  ['국','ㄱ','guk','クㇰ','k：舌の奥で止める'],
+  ['산','ㄴ','san','サン','n：舌先を上の歯茎に'],
+  ['곧','ㄷ','got','コッ','t：舌先で止める'],
+  ['물','ㄹ','mul','ムル','l：舌先を付けたまま'],
+  ['밤','ㅁ','bam','パム','m：口を閉じる'],
+  ['밥','ㅂ','bap','パㇷ゚','p：口を閉じて止める'],
+  ['강','ㅇ','gang','カン','ng：舌の奥を付け口は開けたまま'],
+  ['옷','ㅅ','ot','オッ','ㅅのパッチムは t の音'],
+  ['앞','ㅍ','ap','アㇷ゚','ㅍのパッチムは p の音'],
+  ['부엌','ㅋ','bueok','プオㇰ','ㅋのパッチムは k の音']
+]},
+{ id:'g1', title:'あいさつ', sub:'まず使える15フレーズ', type:'vocab',
+  intro:'丁寧な順に「〜ㅂ니다／습니다体」（かしこまった丁寧）＞「〜요体」（打ち解けた丁寧）。初対面や目上には前者、普段の会話は後者が自然です。',
+  items:[
+  ['안녕하세요','こんにちは','annyeonghaseyo','朝昼晩いつでも使える'],
+  ['감사합니다','ありがとうございます','gamsahamnida','かしこまった言い方'],
+  ['고마워요','ありがとう（丁寧）','gomawoyo','やわらかい丁寧語'],
+  ['죄송합니다','申し訳ありません','joesonghamnida','かしこまった謝罪'],
+  ['미안해요','ごめんなさい','mianhaeyo','やわらかい謝罪'],
+  ['네','はい','ne','예（イェ）とも言う'],
+  ['아니요','いいえ','aniyo',''],
+  ['안녕히 가세요','さようなら（去る人へ）','annyeonghi gaseyo','「安寧に行ってください」'],
+  ['안녕히 계세요','さようなら（残る人へ）','annyeonghi gyeseyo','「安寧にいてください」'],
+  ['처음 뵙겠습니다','はじめまして','cheoeum boepgetseumnida',''],
+  ['만나서 반갑습니다','お会いできてうれしいです','mannaseo bangapseumnida','はじめましての後によく続ける'],
+  ['잘 부탁합니다','よろしくお願いします','jal butakhamnida',''],
+  ['괜찮아요','大丈夫です','gwaenchanayo','「いいですよ」「結構です」にも'],
+  ['잘 먹겠습니다','いただきます','jal meokgetseumnida',''],
+  ['잘 먹었습니다','ごちそうさまでした','jal meogeotseumnida','']
+]},
+{ id:'w1', title:'基本単語', sub:'身の回りの名詞20', type:'vocab',
+  intro:'読めるようになったら、パッチムや濁る位置に気をつけて読んでみましょう。漢字語は日本語と音が似ているものが多いです（학교＝学校 ハッキョ）。',
+  items:[
+  ['사람','人','saram',''],
+  ['학생','学生','haksaeng','漢字語：學生'],
+  ['대학교','大学','daehakgyo','漢字語：大學校'],
+  ['친구','友達','chingu','漢字語：親舊'],
+  ['물','水','mul',''],
+  ['밥','ご飯','bap',''],
+  ['커피','コーヒー','keopi','外来語'],
+  ['학교','学校','hakgyo','発音はハッキョ'],
+  ['집','家','jip',''],
+  ['차','車／お茶','cha','同音異義語'],
+  ['일본','日本','ilbon',''],
+  ['한국','韓国','hanguk',''],
+  ['이름','名前','ireum',''],
+  ['책','本','chaek','漢字語：冊'],
+  ['공부','勉強','gongbu','漢字語：工夫'],
+  ['우유','牛乳','uyu','漢字語：牛乳'],
+  ['가방','かばん','gabang',''],
+  ['시간','時間','sigan','漢字語：時間'],
+  ['화장실','トイレ','hwajangsil','漢字語：化粧室'],
+  ['어디','どこ','eodi','']
+]},
+{ id:'n1', title:'数字（漢数詞）', sub:'일 이 삼 … 십', type:'vocab',
+  intro:'韓国語の数字は2系統あります。まずは日本語の「イチ・ニ・サン」にあたる<b>漢数詞</b>から。年月日・電話番号・値段・分などに使います。',
+  items:[
+  ['일','1','il','いち'],['이','2','i','に'],['삼','3','sam','さん'],['사','4','sa','し'],['오','5','o','ご'],
+  ['육','6','yuk','ろく'],['칠','7','chil','しち'],['팔','8','pal','はち'],['구','9','gu','く'],['십','10','sip','じゅう'],
+  ['백','100','baek','ひゃく'],['천','1000','cheon','せん']
+]},
+{ id:'s1', title:'はじめての文法', sub:'입니다・예요/이에요・은/는・이/가・있어요', type:'grammar',
+  intro:'語順は日本語とほぼ同じ「私は／学生／です」。助詞や語尾は、<b>直前の語にパッチムがあるか</b>で形が変わります。<br>パッチムあり：<span class="ko">은・이・이에요</span>　／　なし：<span class="ko">는・가・예요</span>',
+  items:[
+  {kind:'tiles',ja:'私は学生です。（かしこまった）',ans:['저는','학생입니다.'],extra:['학생은'],exp:'저（私）＋는（は）。名詞＋입니다 で「〜です」。'},
+  {kind:'tiles',ja:'私は日本人です。',ans:['저는','일본','사람이에요.'],extra:['한국'],exp:'사람はパッチムあり → 이에요。'},
+  {kind:'tiles',ja:'名前は何ですか？',ans:['이름이','뭐예요?'],extra:['이름은'],exp:'뭐（何）はパッチムなし → 예요。'},
+  {kind:'tiles',ja:'トイレはどこですか？',ans:['화장실이','어디예요?'],extra:['화장실는'],exp:'場所を尋ねるときは 이/가 を使うのが自然。화장실はパッチムあり → 이。'},
+  {kind:'tiles',ja:'友達がいます。',ans:['친구가','있어요.'],extra:['없어요.'],exp:'있어요＝あります・います（人にも物にも使う）。'},
+  {kind:'tiles',ja:'時間がありません。',ans:['시간이','없어요.'],extra:['있어요.'],exp:'없어요＝ありません・いません。'},
+  {kind:'tiles',ja:'コーヒーください。',ans:['커피','주세요.'],extra:['예요.'],exp:'名詞＋주세요 で「〜ください」。買い物で必須。'},
+  {kind:'choice',q:'저___ 학생이에요.',ja:'私は学生です。',choices:['는','은','가','이'],a:'는',exp:'저 はパッチムなし → 는。'},
+  {kind:'choice',q:'선생님___ 한국 사람이에요.',ja:'先生は韓国人です。',choices:['은','는','이','가'],a:'은',exp:'선생님 は ㅁ パッチムあり → 은。'},
+  {kind:'choice',q:'이름___ 뭐예요?',ja:'名前は何ですか？',choices:['이','가','는','을'],a:'이',exp:'이름 は ㅁ パッチムあり → 이。'},
+  {kind:'choice',q:'우유___ 없어요.',ja:'牛乳がありません。',choices:['가','이','은','는'],a:'가',exp:'우유 はパッチムなし → 가。'},
+  {kind:'choice',q:'이것은 커피___.',ja:'これはコーヒーです。',choices:['예요','이에요','입니까','있어요'],a:'예요',exp:'커피 はパッチムなし → 예요。'},
+  {kind:'choice',q:'저는 대학생___.',ja:'私は大学生です。',choices:['이에요','예요','가요','있어요'],a:'이에요',exp:'대학생 は ㅇ パッチムあり → 이에요。'},
+  {kind:'choice',q:'가방이 ___?',ja:'かばんはありますか？',choices:['있어요','없어요','예요','주세요'],a:'있어요',exp:'疑問文は語尾を上げて読むだけ。있어요? ＝ありますか？'}
+]}
+];
+
+/* ============ 保存（このブラウザ内のみ） ============ */
+const KEY='hangul-quiz-v1';
+let store={best:{},wrong:{},custom:[]};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s) store=Object.assign(store,s);}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+
+function allLessons(){return LESSONS.concat(store.custom||[]);}
+function lessonById(id){return allLessons().find(l=>l.id===id);}
+
+/* ============ 音声 ============ */
+let koVoice=null;
+function pickVoice(){try{const v=speechSynthesis.getVoices();koVoice=v.find(x=>/^ko/i.test(x.lang))||null;}catch(e){}}
+try{pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}
+function speak(t){
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(t.replace(/___/g,''));u.lang='ko-KR';u.rate=.85;if(koVoice)u.voice=koVoice;speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ============ ユーティリティ ============ */
+const $=s=>document.querySelector(s);
+const app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
+function pickDistractors(correct,pool,n=3){
+  return shuffle([...new Set(pool.filter(x=>x!==correct))]).slice(0,n);
+}
+
+/* ============ 問題生成 ============ */
+function questionsFor(lesson,onlyIdx){
+  const idxs=(onlyIdx||lesson.items.map((_,i)=>i));
+  const qs=[];
+  if(lesson.type==='char'){
+    const reads=lesson.items.map(x=>`${x[2]}（${x[3]}）`);
+    const chars=lesson.items.map(x=>x[0]);
+    idxs.forEach(i=>{
+      const it=lesson.items[i],read=reads[i];
+      const exp=`<span class="ko">${esc(it[0])}</span>（${esc(it[1])}）＝ ${esc(read)}。${esc(it[4])}`;
+      qs.push({key:lesson.id+':'+i,label:'読み方は？',main:it[0],sub:it[1],speak:/[가-힣]/.test(it[0])?it[0]:it[1],
+        choices:shuffle([read,...pickDistractors(read,reads)]),a:read,exp});
+      qs.push({key:lesson.id+':'+i,label:'この読みの文字は？',main:read,mainCls:'mid',speak:/[가-힣]/.test(it[0])?it[0]:it[1],hideSpeakUntil:true,
+        choices:shuffle([it[0],...pickDistractors(it[0],chars)]),a:it[0],koChoices:true,exp});
+    });
+  } else if(lesson.type==='vocab'){
+    const kos=lesson.items.map(x=>x[0]),jas=lesson.items.map(x=>x[1]),rs=lesson.items.map(x=>x[2]);
+    idxs.forEach(i=>{
+      const it=lesson.items[i];
+      const exp=`<span class="ko">${esc(it[0])}</span>［${esc(it[2])}］＝ ${esc(it[1])}${it[3]?'。'+esc(it[3]):''}`;
+      const len=it[0].length>6?'small':(it[0].length>3?'mid':'');
+      qs.push({key:lesson.id+':'+i,label:'意味は？',main:it[0],mainCls:len,speak:it[0],
+        choices:shuffle([it[1],...pickDistractors(it[1],jas)]),a:it[1],exp});
+      qs.push({key:lesson.id+':'+i,label:'韓国語で言うと？',main:it[1],mainCls:'mid',speak:it[0],hideSpeakUntil:true,
+        choices:shuffle([it[0],...pickDistractors(it[0],kos)]),a:it[0],koChoices:true,exp});
+      if(it[2]) qs.push({key:lesson.id+':'+i,label:'読み方（ローマ字）は？',main:it[0],mainCls:len,speak:it[0],hideSpeakUntil:true,
+        choices:shuffle([it[2],...pickDistractors(it[2],rs)]),a:it[2],exp});
+    });
+  } else if(lesson.type==='grammar'){
+    idxs.forEach(i=>{
+      const it=lesson.items[i];
+      if(it.kind==='tiles'){
+        qs.push({key:lesson.id+':'+i,kind:'tiles',label:'並べて韓国語にしよう',main:it.ja,mainCls:'small',
+          tiles:shuffle(it.ans.concat(it.extra||[])),a:it.ans.join(' '),speak:it.ans.join(' '),exp:esc(it.exp)});
+      } else {
+        qs.push({key:lesson.id+':'+i,label:it.ja||'空欄に入るのは？',main:it.q,mainCls:'mid',speak:it.q.replace('___',it.a),hideSpeakUntil:true,
+          choices:shuffle(it.choices),a:it.a,koChoices:true,exp:esc(it.exp||'')});
+      }
+    });
+  } else if(lesson.type==='custom'){
+    const as=lesson.items.map(x=>x.a);
+    idxs.forEach(i=>{
+      const it=lesson.items[i];
+      const ch=it.choices&&it.choices.length>1?shuffle(it.choices):shuffle([it.a,...pickDistractors(it.a,as)]);
+      const isKo=/[가-힣]/.test(it.q);
+      qs.push({key:lesson.id+':'+i,label:it.label||'答えは？',main:it.q,mainCls:it.q.length>6?'small':'mid',speak:isKo?it.q:(/[가-힣]/.test(it.a)?it.a:''),hideSpeakUntil:!isKo,
+        choices:ch,a:it.a,koChoices:/[가-힣]/.test(it.a),exp:esc(it.exp||'')});
+    });
+  }
+  return qs;
+}
+
+/* ============ 画面：ホーム ============ */
+function home(){
+  try{speechSynthesis.cancel()}catch(e){}
+  Q=null;
+  const wrongCount=Object.keys(store.wrong).length;
+  let h=`<header><h1><span class="ko">한글</span> 練習帳</h1><button class="link" id="toImport">＋ 問題を追加</button></header>`;
+  h+=`<div class="card" style="display:flex;align-items:center;gap:12px;justify-content:space-between">
+      <div><b>苦手を復習</b><div class="note">${wrongCount?`間違えた問題 ${wrongCount} 個`:'間違えた問題がここにたまります'}</div></div>
+      <button class="btn" id="review" ${wrongCount?'':'disabled'}>復習する</button></div>`;
+  const groups=[['文字を読む',['v1','c1','c2','v2','b1']],['ことばと文',['g1','w1','n1','s1']]];
+  groups.forEach(([g,ids])=>{
+    h+=`<h2>${g}</h2>`;
+    ids.forEach((id,k)=>{h+=lessonBtn(lessonById(id));});
+  });
+  if(store.custom.length){
+    h+=`<h2>追加した問題</h2>`;
+    store.custom.forEach(l=>{h+=lessonBtn(l);});
+  }
+  h+=`<p class="note" style="margin-top:24px">成績と苦手リストはこのブラウザの中だけに保存されます。🔊ボタンの音声は端末の韓国語音声を使います（入っていない端末では鳴りません）。</p>`;
+  app.innerHTML=h;
+  $('#toImport').onclick=importView;
+  $('#review').onclick=startReview;
+  document.querySelectorAll('[data-lesson]').forEach(b=>b.onclick=()=>lessonView(b.dataset.lesson));
+}
+let lessonNo=0;
+function lessonBtn(l){
+  const all=allLessons();const n=all.indexOf(l)+1;
+  const b=store.best[l.id];
+  return `<button class="card lesson" data-lesson="${esc(l.id)}">
+    <div class="num">${n}</div>
+    <div class="body"><div class="t">${esc(l.title)}</div><div class="s ko">${esc(l.sub||'')}</div></div>
+    <div class="score">${b!=null?`<b>${b}%</b>ベスト`:'未挑戦'}</div></button>`;
+}
+
+/* ============ 画面：レッスン ============ */
+function lessonView(id){
+  const l=lessonById(id);
+  let h=`<div class="topbar"><button class="link" id="back">← 戻る</button><b style="flex:1">${esc(l.title)}</b></div>`;
+  if(l.intro) h+=`<div class="intro">${l.intro}</div>`;
+  h+=`<div class="row" style="margin-bottom:14px"><button class="btn" id="start">問題を解く</button>`;
+  if(l.type==='custom') h+=`<button class="btn ghost" id="del">このセットを削除</button>`;
+  h+=`</div>`;
+  if(l.type==='char'||l.type==='vocab'){
+    h+=`<div class="card"><div class="note" style="margin-bottom:6px">一覧（タップで発音）</div><table class="chart">`;
+    l.items.forEach(it=>{
+      if(l.type==='char') h+=`<tr data-say="${esc(/[가-힣]/.test(it[0])?it[0]:it[1])}"><td class="big ko">${esc(it[0])}</td><td class="r"><span class="ko">${esc(it[1])}</span>　<b>${esc(it[2])}</b>（${esc(it[3])}）</td><td class="n">${esc(it[4])}</td></tr>`;
+      else h+=`<tr data-say="${esc(it[0])}"><td class="r ko" style="font-size:19px;font-weight:700">${esc(it[0])}</td><td class="r">${esc(it[1])}<div class="n">${esc(it[2])}</div></td><td class="n">${esc(it[3]||'')}</td></tr>`;
+    });
+    h+=`</table></div>`;
+  } else if(l.type==='custom'){
+    h+=`<div class="card"><table class="chart">`+l.items.map(it=>`<tr><td class="r">${esc(it.q)}</td><td class="r"><b>${esc(it.a)}</b></td></tr>`).join('')+`</table></div>`;
+  }
+  app.innerHTML=h;
+  $('#back').onclick=home;
+  $('#start').onclick=()=>startQuiz([{lesson:l}],l.id);
+  const d=$('#del'); if(d) d.onclick=()=>{
+    if(d.dataset.sure){store.custom=store.custom.filter(x=>x.id!==l.id);delete store.best[l.id];Object.keys(store.wrong).forEach(k=>{if(k.startsWith(l.id+':'))delete store.wrong[k]});save();home();}
+    else{d.dataset.sure=1;d.textContent='もう一度押すと削除';}
+  };
+  document.querySelectorAll('[data-say]').forEach(r=>r.onclick=()=>speak(r.dataset.say));
+}
+
+/* ============ クイズ ============ */
+let Q=null;
+function startQuiz(parts,bestId){
+  let qs=[];
+  parts.forEach(p=>qs=qs.concat(questionsFor(p.lesson,p.idx)));
+  qs=shuffle(qs);
+  const limit=bestId?Math.min(qs.length,15):Math.min(qs.length,20);
+  Q={qs:qs.slice(0,limit),i:0,ok:0,miss:[],bestId};
+  showQ();
+}
+function startReview(){
+  const by={};
+  Object.keys(store.wrong).forEach(k=>{const [lid,i]=k.split(':');(by[lid]=by[lid]||[]).push(+i);});
+  const parts=Object.entries(by).map(([lid,idx])=>({lesson:lessonById(lid),idx})).filter(p=>p.lesson);
+  if(!parts.length){store.wrong={};save();home();return;}
+  startQuiz(parts,null);
+}
+function showQ(){
+  const q=Q.qs[Q.i];
+  const pct=Math.round(Q.i/Q.qs.length*100);
+  let h=`<div class="topbar"><button class="link" id="quit">✕</button><div class="progress"><i style="width:${pct}%"></i></div><span class="note">${Q.i+1}/${Q.qs.length}</span></div>`;
+  const koMain=/[가-힣ㄱ-ㅣ]/.test(q.main);
+  h+=`<div class="card qcard"><div class="qlabel">${esc(q.label)}</div>
+      <div class="qmain ${q.mainCls||''} ${koMain?'ko':''}">${esc(q.main)}</div>
+      ${q.sub?`<div class="qsub ko">${esc(q.sub)}</div>`:''}
+      ${q.speak&&!q.hideSpeakUntil?`<button class="speak" id="say">🔊 聞く</button>`:''}`;
+  if(q.kind==='tiles'){
+    h+=`<div class="tiles answerline ko" id="line"></div><div class="tiles ko" id="bank">`+
+       q.tiles.map((t,i)=>`<button class="tile" data-i="${i}">${esc(t)}</button>`).join('')+`</div>`;
+  } else {
+    h+=`<div class="choices ${q.choices.some(c=>c.length>12)?'one':''}">`+
+       q.choices.map(c=>`<button class="choice ${q.koChoices?'ko':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('')+`</div>`;
+  }
+  h+=`<div id="fb"></div></div><div class="actions">${q.kind==='tiles'?'<button class="btn ghost" id="clear">やり直す</button><button class="btn" id="check" disabled>答え合わせ</button>':''}<button class="btn hidden" id="next">次へ →</button></div>`;
+  app.innerHTML=h;
+  $('#quit').onclick=home;
+  const s=$('#say'); if(s) s.onclick=()=>speak(q.speak);
+  if(q.kind==='tiles'){
+    const picked=[];
+    const render=()=>{
+      $('#line').innerHTML=picked.map(i=>`<span class="tile">${esc(q.tiles[i])}</span>`).join('');
+      document.querySelectorAll('#bank .tile').forEach(b=>b.classList.toggle('used',picked.includes(+b.dataset.i)));
+      $('#check').disabled=!picked.length;
+    };
+    document.querySelectorAll('#bank .tile').forEach(b=>b.onclick=()=>{if(!picked.includes(+b.dataset.i)){picked.push(+b.dataset.i);render();}});
+    $('#clear').onclick=()=>{picked.length=0;render();};
+    $('#check').onclick=()=>{
+      const ans=picked.map(i=>q.tiles[i]).join(' ');
+      $('#check').classList.add('hidden');$('#clear').classList.add('hidden');
+      document.querySelectorAll('#bank .tile').forEach(b=>b.disabled=true);
+      judge(ans===q.a,q);
+    };
+  } else {
+    document.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+      const ok=b.dataset.c===q.a;
+      document.querySelectorAll('.choice').forEach(x=>{x.disabled=true;if(x.dataset.c===q.a)x.classList.add('ok');});
+      if(!ok)b.classList.add('ng');
+      judge(ok,q);
+    });
+  }
+}
+function judge(ok,q){
+  if(ok){Q.ok++; if(!Q.bestId) delete store.wrong[q.key];}
+  else{Q.miss.push(q); store.wrong[q.key]=1;}
+  save();
+  $('#fb').innerHTML=`<div class="feedback ${ok?'ok':'ng'}"><b>${ok?'正解！':'残念…'}</b>${ok?'':`　正解：<span class="ko">${esc(q.a)}</span>`}<div>${q.exp||''}</div>
+    ${q.speak?`<button class="speak" id="say2">🔊 聞く</button>`:''}</div>`;
+  const s2=$('#say2'); if(s2) s2.onclick=()=>speak(q.speak);
+  if(q.speak) speak(q.speak);
+  const n=$('#next'); n.classList.remove('hidden'); n.focus();
+  n.onclick=()=>{Q.i++; Q.i<Q.qs.length?showQ():result();};
+}
+function result(){
+  const pct=Math.round(Q.ok/Q.qs.length*100);
+  if(Q.bestId){store.best[Q.bestId]=Math.max(store.best[Q.bestId]||0,pct);save();}
+  const msg=pct===100?'完璧です！次のレッスンへ進みましょう。':pct>=80?'いい調子。間違えた所だけ復習しましょう。':'一覧を見直してからもう一度挑戦してみましょう。';
+  let h=`<div class="card result"><div class="note">${Q.bestId?esc(lessonById(Q.bestId).title):'苦手復習'}</div><div class="big">${pct}%</div><div>${Q.ok} / ${Q.qs.length} 問正解</div><p>${msg}</p>`;
+  if(Q.miss.length){
+    h+=`<div class="mistakes"><b>間違えた問題</b><ul>`+Q.miss.map(m=>`<li><span class="ko">${esc(m.main)}</span> → <span class="ko"><b>${esc(m.a)}</b></span></li>`).join('')+`</ul></div>`;
+  }
+  h+=`<div class="row" style="justify-content:center;margin-top:16px"><button class="btn ghost" id="home">ホームへ</button>${Q.bestId?'<button class="btn" id="again">もう一度</button>':''}</div></div>`;
+  app.innerHTML=h;
+  $('#home').onclick=home;
+  const a=$('#again'); if(a) a.onclick=()=>startQuiz([{lesson:lessonById(Q.bestId)}],Q.bestId);
+}
+
+/* ============ 問題の取り込み ============ */
+const PROMPT=`今まで作った韓国語テキストのうち、［第◯課］の内容を練習アプリ用の問題データにしてください。
+次のJSON形式だけを出力してください（説明文は不要）。
+
+{
+  "title": "第◯課 〜",
+  "type": "vocab",
+  "items": [
+    {"ko": "韓国語", "ja": "日本語の意味", "read": "ローマ字読み", "note": "補足（任意）"}
+  ]
+}
+
+単語や例文ではなく文法・穴埋め問題にしたい場合は "type": "quiz" にして、items を次の形にしてください：
+{"q": "問題文（空欄は___）", "a": "正解", "choices": ["正解","誤答1","誤答2","誤答3"], "exp": "解説"}`;
+
+function importView(){
+  let h=`<div class="topbar"><button class="link" id="back">← 戻る</button><b style="flex:1">問題を追加</b></div>
+  <div class="card">
+    <p style="margin-top:0"><b>1.</b> Claude Code（テキストを作っている方）に、下の依頼文を貼り付けて送ってください。［第◯課］は練習したい範囲に書き換えます。</p>
+    <textarea id="prompt" readonly style="min-height:200px">${esc(PROMPT)}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn ghost" id="copy">依頼文をコピー</button><span class="msg" id="copymsg"></span></div>
+    <p><b>2.</b> 返ってきたJSONをここに貼り付けて「追加」を押します。</p>
+    <textarea id="json" placeholder='{"title": "...", "type": "vocab", "items": [ ... ]}'></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" id="add">追加</button></div>
+    <div class="msg" id="msg"></div>
+  </div>`;
+  app.innerHTML=h;
+  $('#back').onclick=home;
+  $('#copy').onclick=async()=>{
+    try{await navigator.clipboard.writeText(PROMPT);$('#copymsg').textContent='コピーしました';}
+    catch(e){const t=$('#prompt');t.focus();t.select();$('#copymsg').textContent='選択したので長押し／Ctrl+Cでコピーしてください';}
+  };
+  $('#add').onclick=()=>{
+    const m=$('#msg');
+    try{
+      let raw=$('#json').value.trim().replace(/^```(json)?/,'').replace(/```$/,'').trim();
+      const d=JSON.parse(raw);
+      const sets=Array.isArray(d)?d:[d];
+      let added=0;
+      sets.forEach(s=>{
+        if(!s.items||!s.items.length) throw new Error('items が空です');
+        const id='u'+Date.now().toString(36)+added;
+        let lesson;
+        if((s.type||'vocab')==='quiz'||s.items[0].q){
+          const items=s.items.filter(x=>x.q&&x.a).map(x=>({q:String(x.q),a:String(x.a),choices:Array.isArray(x.choices)?x.choices.map(String):null,exp:x.exp||''}));
+          if(items.length<2) throw new Error('問題が2問以上必要です');
+          lesson={id,title:s.title||'追加した問題',sub:`${items.length}問`,type:'custom',items};
+        } else {
+          const items=s.items.filter(x=>x.ko&&x.ja).map(x=>[String(x.ko),String(x.ja),String(x.read||''),String(x.note||'')]);
+          if(items.length<4) throw new Error('単語は4つ以上必要です（選択肢を作るため）');
+          lesson={id,title:s.title||'追加した単語',sub:items.slice(0,4).map(x=>x[0]).join(' ')+(items.length>4?' …':''),type:'vocab',items};
+        }
+        store.custom.push(lesson);added++;
+      });
+      save();
+      m.style.color='var(--ok)';m.textContent=`${added}セット追加しました。ホームの「追加した問題」から解けます。`;
+      $('#json').value='';
+    }catch(e){m.style.color='var(--ng)';m.textContent='読み込めませんでした：'+e.message;}
+  };
+}
+
+home();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
+document.addEventListener('keydown',e=>{
+  if(!Q||!document.querySelector('.choice'))return;
+  const n=$('#next');
+  if(e.key==='Enter'&&n&&!n.classList.contains('hidden')){n.click();return;}
+  const k=+e.key; const bs=document.querySelectorAll('.choice');
+  if(k>=1&&k<=bs.length&&!bs[0].disabled) bs[k-1].click();
+});
+</script>
+</body>
+</html>
